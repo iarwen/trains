@@ -165,7 +165,7 @@ public class Main {
         List<RouteDistance> temp7 = main.normalRoute(edges, "A", "C", 4, -1, ConditionConstants.ExactlyStops);
         List<RouteDistance> result7 = new ArrayList<>(16);
         temp7.forEach(routeDistance -> {
-            if (routeDistance.getSb().length() == 4) {
+            if (routeDistance.getSb().length() == 4 + 1) {
                 result7.add(routeDistance);
             }
         });
