@@ -37,10 +37,8 @@ public class Main {
         }
 
         Map<String, Integer> dist = new HashMap<>();
-        PriorityQueue<Object[]> minHeap = new PriorityQueue<>((edge1, edge2) -> {
-            return (Integer) edge1[1] - (Integer) edge2[1];
-        });
-        minHeap.offer(new Object[]{s, new Integer(0)});
+        PriorityQueue<Object[]> minHeap = new PriorityQueue<>(Comparator.comparingInt(edge1 -> (Integer) edge1[1]));
+        minHeap.offer(new Object[]{s, 0});
 
         while (!minHeap.isEmpty()) {
             Object[] curr = minHeap.poll();
