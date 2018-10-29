@@ -1,10 +1,20 @@
 package com.tw.homework.trains;
 
+import com.tw.homework.trains.modle.*;
+
 import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class Main {
 
-    private int routeDistance(String[][] edges, String route) {
+    /**
+     * 键值对方式直接获取确定路径的长度
+     *
+     * @param edges 包含起点终点权重的路径 [source, target, weight]
+     * @param route 确定的路径
+     * @return 返回确定路径的长度，如果不可达返回Integer.MAX_VALUE
+     */
+    private int certainRouteDistance(String[][] edges, String route) {
         Map<String, Integer> vectorMap = new HashMap<>();
         for (String[] edge : edges) {
             vectorMap.put(edge[0] + edge[1], new Integer(edge[2]));
@@ -23,30 +33,31 @@ public class Main {
     }
 
     /**
-     * Given a list of (source, target, weight) edge pairs, return the shortest distance from s to any
-     * other nodes in the graph. Any unreachable node has a distance of Integer.MAX_VALUE.
+     * 迪杰斯特拉最短路径算法
      *
-     * @param edges List of tuple representation of edges containing [source, target weight].
-     * @param s     Start node of the shortest path tree
-     * @return Shortest path from s to other nodes in the graph.
+     * @param edges 包含起点终点权重的路径 [source, target, weight]
+     * @param s     要搜索的最短路径的起点
+     * @return 起点s可达的所有终点的最短路径，但不考虑环以及起点终点是自身
      */
-    private Map<String, Integer> dijkstraShortestRoute(String[][] edges, Object s) {
-        Map<String, List<Object[]>> adjMap = new HashMap<>();
+    private Map<String, Integer> dijkstraShortestRoute(String[][] edges, String s) {
+        Map<String, List<TargetCity>> adjMap = new HashMap<>();
         for (String[] edge : edges) {
-            adjMap.computeIfAbsent(edge[0], k -> new ArrayList<>()).add(new Object[]{edge[1], edge[2]});
+            adjMap.computeIfAbsent(edge[0], k -> new ArrayList<>()).add(new TargetCity(edge[1], edge[2]));
         }
 
         Map<String, Integer> dist = new HashMap<>();
-        PriorityQueue<Object[]> minHeap = new PriorityQueue<>(Comparator.comparingInt(edge1 -> (Integer) edge1[1]));
-        minHeap.offer(new Object[]{s, 0});
+        PriorityQueue<TargetCity> minHeap = new PriorityQueue<>(Comparator.comparingInt(TargetCity::getDistance));
+        minHeap.offer(new TargetCity(s, 0));
 
         while (!minHeap.isEmpty()) {
-            Object[] curr = minHeap.poll();
-            if (dist.containsKey(curr[0])) continue;
-            dist.put((String) curr[0], (Integer) curr[1]);
-            if (adjMap.containsKey(curr[0])) {
-                for (Object[] edge : adjMap.get(curr[0])) {
-                    minHeap.offer(new Object[]{edge[0], new Integer(edge[1].toString()) + new Integer(curr[1].toString())});
+            TargetCity curr = minHeap.poll();
+            if (dist.containsKey(curr.getTo())) continue;
+            if (curr.getDistance() > 0) {
+                dist.put(curr.getTo(), curr.getDistance());
+            }
+            if (adjMap.containsKey(curr.getTo())) {
+                for (TargetCity edge : adjMap.get(curr.getTo())) {
+                    minHeap.offer(new TargetCity(edge.getTo(), edge.getDistance() + curr.getDistance()));
                 }
             }
         }
@@ -54,7 +65,82 @@ public class Main {
         return dist;
     }
 
+    /**
+     * 普通路径算法
+     *
+     * @param edges 包含起点终点权重的路径 [source, target, weight]
+     * @param s     要搜索的路径的起点
+     * @param e     要搜索的路径的起点
+     * @return 起点s达到e的所有路径，考虑环以及起点终点是自身
+     */
+    private List<RouteDistance> normalRoute(String[][] edges,
+                                            String s,
+                                            String e,
+                                            int stops, int distance,
+                                            String conditionName) {
+        Map<String, List<TargetCity>> adjMap = new HashMap<>();
+        for (String[] edge : edges) {
+            adjMap.computeIfAbsent(edge[0], k -> new ArrayList<>()).add(new TargetCity(edge[1], edge[2]));
+        }
+
+        List<RouteDistance> routeDistances = new ArrayList<>(16);
+        LinkedBlockingDeque<RouteDistance> tempRouteDistances = new LinkedBlockingDeque<>();
+
+        //起点
+        RouteDistance start = new RouteDistance();
+        start.addStop(new TargetCity(s, 0));
+        tempRouteDistances.add(start);
+
+        SearchStopConditionFactory factory = new SearchStopConditionFactory();
+        //递归遍历
+        while (!tempRouteDistances.isEmpty()) {
+            RouteDistance curr = tempRouteDistances.poll();
+            String lastStop = curr.getSb().substring(curr.getSb().length() - 1);
+            if (adjMap.containsKey(lastStop)) {
+                for (TargetCity edge : adjMap.get(lastStop)) {
+                    RouteDistance routeDistance = new RouteDistance();
+                    routeDistance.addStop(new TargetCity(curr.getSb().toString(), curr.getDistance()));
+
+                    TargetCity targetCity = new TargetCity(edge.getTo(), edge.getDistance() + curr.getDistance());
+                    routeDistance.addStop(targetCity);
+                    if (e.equals(edge.getTo())) {
+                        routeDistances.add(routeDistance);
+                    }
+                    SearchStopCondition condition = factory.getCondition(conditionName, routeDistance, stops, distance);
+                    if (!condition.canStop()) {
+                        tempRouteDistances.offer(routeDistance);
+                    }
+                }
+            }
+        }
+
+
+        return routeDistances;
+    }
+
+
+    /**
+     * 输入数据检查 抛参数非法异常
+     *
+     * @param edges 包含起点终点权重的路径 [source, target, weight]
+     */
+    private void dataCheck(String[][] edges) {
+        Map<String, String> adjMap = new HashMap<>();
+        for (String[] edge : edges) {
+            if (edge[0].equals(edge[1])) {
+                throw new IllegalArgumentException("The given route has same start and end:" + edge[0] + edge[1]);
+            }
+            String key = edge[0] + edge[1];
+            if (adjMap.containsKey(key)) {
+                throw new IllegalArgumentException("The same route has appear more than once:" + key);
+            }
+            adjMap.put(edge[0] + edge[1], "TEMP");
+        }
+    }
+
+
     public static void main(String[] args) {
+
         String[][] edges = {
                 {"A", "B", "5"},
                 {"B", "C", "4"},
@@ -67,15 +153,32 @@ public class Main {
                 {"A", "E", "7"}
         };
         Main main = new Main();
-        printDistance(1, main.routeDistance(edges, "A-B-C"));
-        printDistance(2, main.routeDistance(edges, "A-D"));
-        printDistance(3, main.routeDistance(edges, "A-D-C"));
-        printDistance(4, main.routeDistance(edges, "A-E-B-C-D"));
-        printDistance(5, main.routeDistance(edges, "A-E-D"));
+        main.dataCheck(edges);
+        printDistance(1, main.certainRouteDistance(edges, "A-B-C"));
+        printDistance(2, main.certainRouteDistance(edges, "A-D"));
+        printDistance(3, main.certainRouteDistance(edges, "A-D-C"));
+        printDistance(4, main.certainRouteDistance(edges, "A-E-B-C-D"));
+        printDistance(5, main.certainRouteDistance(edges, "A-E-D"));
 
 
-        Map<String, Integer> r = main.dijkstraShortestRoute(edges, "B");
-        System.out.println(r.get("E"));
+        printDistance(6, main.normalRoute(edges, "C", "C", 3, -1, ConditionConstants.MaxStops).size());
+        List<RouteDistance> temp7 = main.normalRoute(edges, "A", "C", 4, -1, ConditionConstants.ExactlyStops);
+        List<RouteDistance> result7 = new ArrayList<>(16);
+        temp7.forEach(routeDistance -> {
+            if (routeDistance.getSb().length() == 4) {
+                result7.add(routeDistance);
+            }
+        });
+        printDistance(7, result7.size());
+
+        Map<String, Integer> result8 = main.dijkstraShortestRoute(edges, "A");
+        printDistance(8, result8.get("C"));
+        Map<String, Integer> result9 = main.dijkstraShortestRoute(edges, "B");
+        printDistance(9, result9.get("B"));
+
+        printDistance(10, main.normalRoute(edges, "C", "C", -1, 30, ConditionConstants.MaxDistance).size());
+
+
     }
 
     private static void printDistance(int number, int distance) {
@@ -86,5 +189,4 @@ public class Main {
             System.out.println(distance);
         }
     }
-
 }
