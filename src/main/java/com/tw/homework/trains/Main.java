@@ -4,6 +4,7 @@ import com.tw.homework.trains.modle.*;
 
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Main {
 
@@ -84,7 +85,7 @@ public class Main {
         }
 
         List<RouteDistance> routeDistances = new ArrayList<>(16);
-        LinkedBlockingDeque<RouteDistance> tempRouteDistances = new LinkedBlockingDeque<>();
+        List<RouteDistance> tempRouteDistances = new ArrayList<>();
 
         //起点
         RouteDistance start = new RouteDistance();
@@ -94,7 +95,7 @@ public class Main {
         SearchStopConditionFactory factory = new SearchStopConditionFactory();
         //递归遍历
         while (!tempRouteDistances.isEmpty()) {
-            RouteDistance curr = tempRouteDistances.poll();
+            RouteDistance curr = tempRouteDistances.remove(tempRouteDistances.size()-1);
             String lastStop = curr.getSb().substring(curr.getSb().length() - 1);
             if (adjMap.containsKey(lastStop)) {
                 for (TargetCity edge : adjMap.get(lastStop)) {
@@ -110,7 +111,7 @@ public class Main {
                     }
 
                     if (!condition.canStop()) {
-                        tempRouteDistances.offer(routeDistance);
+                        tempRouteDistances.add(routeDistance);
                     }
                 }
             }
