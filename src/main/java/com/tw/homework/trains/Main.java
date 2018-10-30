@@ -33,11 +33,11 @@ public class Main {
     }
 
     /**
-     * 迪杰斯特拉最短路径算法
+     * 迪杰斯特拉最小堆最短路径算法
      *
      * @param edges 包含起点终点权重的路径 [source, target, weight]
      * @param s     要搜索的最短路径的起点
-     * @return 起点s可达的所有终点的最短路径，但不考虑环以及起点终点是自身
+     * @return 起点s可达的所有终点的最短路径
      */
     private Map<String, Integer> dijkstraShortestRoute(String[][] edges, String s) {
         Map<String, List<TargetCity>> adjMap = new HashMap<>();
@@ -117,12 +117,12 @@ public class Main {
         }
 
         //最大步数直接返回
-        if (stops > 0 && ConditionConstants.MaxStops.equals(conditionName)) {
+        if (stops > 0 && ConditionConstants.MAXSTOPS.equals(conditionName)) {
             return routeDistances;
         }
         //确定的步数将步数相等的过滤出来返回
         List<RouteDistance> result = new ArrayList<>(16);
-        if (stops > 0 && ConditionConstants.ExactlyStops.equals(conditionName)) {
+        if (stops > 0 && ConditionConstants.EXACTLYSTOPS.equals(conditionName)) {
             routeDistances.forEach(routeDistance -> {
                 if (routeDistance.getSb().length() - 1 == stops) {
                     result.add(routeDistance);
@@ -130,7 +130,7 @@ public class Main {
             });
         }
         //确定的最大距离的将距离符合的过滤出来返回
-        if (maxDistance > 0 && ConditionConstants.MaxDistance.equals(conditionName)) {
+        if (maxDistance > 0 && ConditionConstants.MAXDISTANCE.equals(conditionName)) {
             routeDistances.forEach(routeDistance -> {
                 if (routeDistance.getDistance() < maxDistance) {
                     result.add(routeDistance);
@@ -162,7 +162,7 @@ public class Main {
 
 
     public static void main(String[] args) {
-        //初始化
+        //初始化录入数据
         String[][] edges = {
                 {"A", "B", "5"},
                 {"B", "C", "4"},
@@ -175,23 +175,27 @@ public class Main {
                 {"A", "E", "7"}
         };
         Main main = new Main();
+        //检查数据
         main.dataCheck(edges);
+        //使用键值对的方式获取指定路径的距离
         printDistance(1, main.certainRouteDistance(edges, "A-B-C"));
         printDistance(2, main.certainRouteDistance(edges, "A-D"));
         printDistance(3, main.certainRouteDistance(edges, "A-D-C"));
         printDistance(4, main.certainRouteDistance(edges, "A-E-B-C-D"));
         printDistance(5, main.certainRouteDistance(edges, "A-E-D"));
 
+        //非最短路径的遍历
+        printDistance(6, main.normalRoute(edges, "C", "C", 3, -1, ConditionConstants.MAXSTOPS).size());
+        printDistance(7, main.normalRoute(edges, "A", "C", 4, -1, ConditionConstants.EXACTLYSTOPS).size());
 
-        printDistance(6, main.normalRoute(edges, "C", "C", 3, -1, ConditionConstants.MaxStops).size());
-        printDistance(7, main.normalRoute(edges, "A", "C", 4, -1, ConditionConstants.ExactlyStops).size());
-
+        //迪杰斯特拉最小堆计算最短距离
         Map<String, Integer> result8 = main.dijkstraShortestRoute(edges, "A");
         printDistance(8, result8.get("C"));
         Map<String, Integer> result9 = main.dijkstraShortestRoute(edges, "B");
         printDistance(9, result9.get("B"));
 
-        printDistance(10, main.normalRoute(edges, "C", "C", -1, 30, ConditionConstants.MaxDistance).size());
+        //非最短路径的遍历
+        printDistance(10, main.normalRoute(edges, "C", "C", -1, 30, ConditionConstants.MAXDISTANCE).size());
 
 
     }

@@ -1,7 +1,7 @@
 package com.tw.homework.trains.modle;
 
 /**
- * Function: trains. <br>
+ * Function: 目的地以及直线距离，构造起点的所有直达点的对象. <br>
  * Date : 2018年10月29日 13:51 <br>
  *
  * @author : changwentao

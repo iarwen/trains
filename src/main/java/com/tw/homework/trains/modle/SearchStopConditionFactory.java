@@ -12,11 +12,11 @@ public class SearchStopConditionFactory {
         if (conditionName == null) {
             return null;
         }
-        if (conditionName.equalsIgnoreCase(ConditionConstants.MaxStops)) {
+        if (conditionName.equalsIgnoreCase(ConditionConstants.MAXSTOPS)) {
             return new MaxStopsSearchStopCondition(route, stops);
-        } else if (conditionName.equalsIgnoreCase(ConditionConstants.MaxDistance)) {
+        } else if (conditionName.equalsIgnoreCase(ConditionConstants.MAXDISTANCE)) {
             return new MaxDistanceSearchStopCondition(route, distance);
-        } else if (conditionName.equalsIgnoreCase(ConditionConstants.ExactlyStops)) {
+        } else if (conditionName.equalsIgnoreCase(ConditionConstants.EXACTLYSTOPS)) {
             return new ExactlyStopsSearchStopCondition(route, stops);
         }
         return null;

@@ -1,7 +1,7 @@
 package com.tw.homework.trains.modle;
 
 /**
- * Function: trains. <br>
+ * Function: 搜索的停止条件. <br>
  * Date : 2018年10月29日 16:16 <br>
  *
  * @author : changwentao

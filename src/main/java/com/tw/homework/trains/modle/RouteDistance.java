@@ -1,7 +1,7 @@
 package com.tw.homework.trains.modle;
 
 /**
- * Function: trains. <br>
+ * Function: 记录全路径以及路径长度的类. <br>
  * Date : 2018年10月29日 16:14 <br>
  *
  * @author : changwentao
