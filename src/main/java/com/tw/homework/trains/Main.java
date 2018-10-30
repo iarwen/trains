@@ -3,8 +3,6 @@ package com.tw.homework.trains;
 import com.tw.homework.trains.modle.*;
 
 import java.util.*;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class Main {
 

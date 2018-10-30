@@ -25,15 +25,7 @@ public class TargetCity {
         return to;
     }
 
-    public void setTo(String to) {
-        this.to = to;
-    }
-
     public int getDistance() {
         return distance;
-    }
-
-    public void setDistance(int distance) {
-        this.distance = distance;
     }
 }
