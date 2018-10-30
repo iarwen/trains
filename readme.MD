@@ -1,10 +1,10 @@
-#Trains Problem 
+# Trains Problem 
 
 @author 常文涛 
 
 @date   2018.10.30
 
-##分析：
+## 分析：
 
 问题描述分为三类：
 
