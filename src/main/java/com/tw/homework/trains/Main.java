@@ -162,7 +162,7 @@ public class Main {
 
 
     public static void main(String[] args) {
-
+        //初始化
         String[][] edges = {
                 {"A", "B", "5"},
                 {"B", "C", "4"},
