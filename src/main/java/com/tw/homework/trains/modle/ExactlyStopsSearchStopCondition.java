@@ -11,7 +11,7 @@ public class ExactlyStopsSearchStopCondition implements SearchStopCondition {
     private RouteDistance route;
     private int stopCnt;
 
-    public ExactlyStopsSearchStopCondition(RouteDistance route, int stopCnt) {
+    ExactlyStopsSearchStopCondition(RouteDistance route, int stopCnt) {
         this.route = route;
         this.stopCnt = stopCnt;
     }

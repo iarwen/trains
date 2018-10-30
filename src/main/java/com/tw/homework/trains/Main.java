@@ -76,7 +76,7 @@ public class Main {
     private List<RouteDistance> normalRoute(String[][] edges,
                                             String s,
                                             String e,
-                                            int stops, int distance,
+                                            int stops, int maxDistance,
                                             String conditionName) {
         Map<String, List<TargetCity>> adjMap = new HashMap<>();
         for (String[] edge : edges) {
@@ -101,12 +101,14 @@ public class Main {
                     RouteDistance routeDistance = new RouteDistance();
                     routeDistance.addStop(new TargetCity(curr.getSb().toString(), curr.getDistance()));
 
-                    TargetCity targetCity = new TargetCity(edge.getTo(), edge.getDistance() + curr.getDistance());
+                    TargetCity targetCity = new TargetCity(edge.getTo(), edge.getDistance());
                     routeDistance.addStop(targetCity);
+                    SearchStopCondition condition = factory.getCondition(conditionName, routeDistance, stops, maxDistance);
+
                     if (e.equals(edge.getTo())) {
                         routeDistances.add(routeDistance);
                     }
-                    SearchStopCondition condition = factory.getCondition(conditionName, routeDistance, stops, distance);
+
                     if (!condition.canStop()) {
                         tempRouteDistances.offer(routeDistance);
                     }
@@ -114,8 +116,28 @@ public class Main {
             }
         }
 
-
-        return routeDistances;
+        //最大步数直接返回
+        if (stops > 0 && ConditionConstants.MaxStops.equals(conditionName)) {
+            return routeDistances;
+        }
+        //确定的步数将步数相等的过滤出来返回
+        List<RouteDistance> result = new ArrayList<>(16);
+        if (stops > 0 && ConditionConstants.ExactlyStops.equals(conditionName)) {
+            routeDistances.forEach(routeDistance -> {
+                if (routeDistance.getSb().length() - 1 == stops) {
+                    result.add(routeDistance);
+                }
+            });
+        }
+        //确定的最大距离的将距离符合的过滤出来返回
+        if (maxDistance > 0 && ConditionConstants.MaxDistance.equals(conditionName)) {
+            routeDistances.forEach(routeDistance -> {
+                if (routeDistance.getDistance() < maxDistance) {
+                    result.add(routeDistance);
+                }
+            });
+        }
+        return result;
     }
 
 
@@ -162,14 +184,7 @@ public class Main {
 
 
         printDistance(6, main.normalRoute(edges, "C", "C", 3, -1, ConditionConstants.MaxStops).size());
-        List<RouteDistance> temp7 = main.normalRoute(edges, "A", "C", 4, -1, ConditionConstants.ExactlyStops);
-        List<RouteDistance> result7 = new ArrayList<>(16);
-        temp7.forEach(routeDistance -> {
-            if (routeDistance.getSb().length() == 4 + 1) {
-                result7.add(routeDistance);
-            }
-        });
-        printDistance(7, result7.size());
+        printDistance(7, main.normalRoute(edges, "A", "C", 4, -1, ConditionConstants.ExactlyStops).size());
 
         Map<String, Integer> result8 = main.dijkstraShortestRoute(edges, "A");
         printDistance(8, result8.get("C"));

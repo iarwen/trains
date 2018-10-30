@@ -11,7 +11,7 @@ public class MaxDistanceSearchStopCondition implements SearchStopCondition {
     private RouteDistance route;
     private int maxDistance;
 
-    public MaxDistanceSearchStopCondition(RouteDistance route, int maxDistance) {
+    MaxDistanceSearchStopCondition(RouteDistance route, int maxDistance) {
         this.route = route;
         this.maxDistance = maxDistance;
     }

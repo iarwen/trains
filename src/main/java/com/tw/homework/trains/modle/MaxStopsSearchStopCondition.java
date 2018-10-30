@@ -11,7 +11,7 @@ public class MaxStopsSearchStopCondition implements SearchStopCondition {
     private RouteDistance route;
     private int stopCnt;
 
-    public MaxStopsSearchStopCondition(RouteDistance route, int stopCnt) {
+    MaxStopsSearchStopCondition(RouteDistance route, int stopCnt) {
         this.route = route;
         this.stopCnt = stopCnt;
     }
