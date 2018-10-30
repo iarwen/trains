@@ -21,6 +21,11 @@
 主要关注stops的个数和最远的距离,使用普通的链表，指定遍历的停止条件
 
 
+## 运行方法
+
+Main类内的main方法即可
+
+
 Problem description:
 
 The local commuter railroad services a number of towns in Kiwiland.  Because of monetary concerns, all of the tracks are 'one-way.'  That is, a route from Kaitaia to Invercargill does not imply the existence of a route from Invercargill to Kaitaia.  In fact, even if both of these routes do happen to exist, they are distinct and are not necessarily the same distance!
