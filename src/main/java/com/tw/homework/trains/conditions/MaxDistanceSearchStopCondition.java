@@ -1,4 +1,6 @@
-package com.tw.homework.trains.modle;
+package com.tw.homework.trains.conditions;
+
+import com.tw.homework.trains.modle.RouteDistance;
 
 /**
  * Function: 最远距离停止条件. <br>

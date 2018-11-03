@@ -1,6 +1,6 @@
 package com.tw.homework.trains;
 
-import com.tw.homework.trains.modle.*;
+import com.tw.homework.trains.conditions.ConditionConstants;
 
 import java.util.*;
 
@@ -30,8 +30,8 @@ public class Main {
         printDistance(5, engine.certainRouteDistance(edges, "A-E-D"));
 
         //非最短路径的遍历
-        printDistance(6, engine.normalRoute(edges, "C", "C", 3, -1, ConditionConstants.MAXSTOPS).size());
-        printDistance(7, engine.normalRoute(edges, "A", "C", 4, -1, ConditionConstants.EXACTLYSTOPS).size());
+        printDistance(6, engine.maxStopRoute(edges, "C", "C", 3).size());
+        printDistance(7, engine.exactlyStopsRoute(edges, "A", "C", 4).size());
 
         //迪杰斯特拉最小堆计算最短距离
         Map<String, Integer> result8 = engine.dijkstraShortestRoute(edges, "A");
@@ -40,7 +40,7 @@ public class Main {
         printDistance(9, result9.get("B"));
 
         //非最短路径的遍历
-        printDistance(10, engine.normalRoute(edges, "C", "C", -1, 30, ConditionConstants.MAXDISTANCE).size());
+        printDistance(10, engine.maxDistanceRoute(edges, "C", "C", 30).size());
 
     }
 

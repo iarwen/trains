@@ -1,4 +1,4 @@
-package com.tw.homework.trains.modle;
+package com.tw.homework.trains.conditions;
 
 /**
  * Function: 停止条件的类型. <br>

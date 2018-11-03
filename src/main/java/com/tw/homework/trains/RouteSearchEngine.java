@@ -1,5 +1,8 @@
 package com.tw.homework.trains;
 
+import com.tw.homework.trains.conditions.ConditionConstants;
+import com.tw.homework.trains.conditions.SearchStopCondition;
+import com.tw.homework.trains.conditions.SearchStopConditionFactory;
 import com.tw.homework.trains.modle.*;
 
 import java.util.*;
@@ -70,18 +73,17 @@ public class RouteSearchEngine {
     }
 
     /**
-     * 普通路径算法
+     * 普通路径算法-最大步数
      *
      * @param edges 包含起点终点权重的路径 [source, target, weight]
      * @param s     要搜索的路径的起点
      * @param e     要搜索的路径的起点
      * @return 起点s达到e的所有路径，考虑环以及起点终点是自身
      */
-    public List<RouteDistance> normalRoute(String[][] edges,
+    public List<RouteDistance> maxStopRoute(String[][] edges,
                                             String s,
                                             String e,
-                                            int stops, int maxDistance,
-                                            String conditionName) {
+                                            int stops) {
         Map<String, List<TargetCity>> adjMap = new HashMap<>();
         for (String[] edge : edges) {
             adjMap.computeIfAbsent(edge[0], k -> new ArrayList<>()).add(new TargetCity(edge[1], edge[2]));
@@ -98,7 +100,7 @@ public class RouteSearchEngine {
         SearchStopConditionFactory factory = new SearchStopConditionFactory();
         //递归遍历
         while (!tempRouteDistances.isEmpty()) {
-            RouteDistance curr = tempRouteDistances.remove(tempRouteDistances.size()-1);
+            RouteDistance curr = tempRouteDistances.remove(tempRouteDistances.size() - 1);
             String lastStop = curr.getSb().substring(curr.getSb().length() - 1);
             if (adjMap.containsKey(lastStop)) {
                 for (TargetCity edge : adjMap.get(lastStop)) {
@@ -107,7 +109,59 @@ public class RouteSearchEngine {
 
                     TargetCity targetCity = new TargetCity(edge.getTo(), edge.getDistance());
                     routeDistance.addStop(targetCity);
-                    SearchStopCondition condition = factory.getCondition(conditionName, routeDistance, stops, maxDistance);
+                    SearchStopCondition condition = factory.getMaxStopCondition(routeDistance, stops);
+
+                    if (e.equals(edge.getTo())) {
+                        routeDistances.add(routeDistance);
+                    }
+
+                    if (!condition.canStop()) {
+                        tempRouteDistances.add(routeDistance);
+                    }
+                }
+            }
+        }
+        return routeDistances;
+    }
+
+    /**
+     * 普通路径算法-明确步数
+     *
+     * @param edges 包含起点终点权重的路径 [source, target, weight]
+     * @param s     要搜索的路径的起点
+     * @param e     要搜索的路径的起点
+     * @return 起点s达到e的所有路径，考虑环以及起点终点是自身
+     */
+    public List<RouteDistance> exactlyStopsRoute(String[][] edges,
+                                                 String s,
+                                                 String e,
+                                                 int stops) {
+        Map<String, List<TargetCity>> adjMap = new HashMap<>();
+        for (String[] edge : edges) {
+            adjMap.computeIfAbsent(edge[0], k -> new ArrayList<>()).add(new TargetCity(edge[1], edge[2]));
+        }
+
+        List<RouteDistance> routeDistances = new ArrayList<>(16);
+        List<RouteDistance> tempRouteDistances = new ArrayList<>();
+
+        //起点
+        RouteDistance start = new RouteDistance();
+        start.addStop(new TargetCity(s, 0));
+        tempRouteDistances.add(start);
+
+        SearchStopConditionFactory factory = new SearchStopConditionFactory();
+        //递归遍历
+        while (!tempRouteDistances.isEmpty()) {
+            RouteDistance curr = tempRouteDistances.remove(tempRouteDistances.size() - 1);
+            String lastStop = curr.getSb().substring(curr.getSb().length() - 1);
+            if (adjMap.containsKey(lastStop)) {
+                for (TargetCity edge : adjMap.get(lastStop)) {
+                    RouteDistance routeDistance = new RouteDistance();
+                    routeDistance.addStop(new TargetCity(curr.getSb().toString(), curr.getDistance()));
+
+                    TargetCity targetCity = new TargetCity(edge.getTo(), edge.getDistance());
+                    routeDistance.addStop(targetCity);
+                    SearchStopCondition condition = factory.getExactlyStopsCondition(routeDistance, stops);
 
                     if (e.equals(edge.getTo())) {
                         routeDistances.add(routeDistance);
@@ -120,30 +174,76 @@ public class RouteSearchEngine {
             }
         }
 
-        //最大步数直接返回
-        if (stops > 0 && ConditionConstants.MAXSTOPS.equals(conditionName)) {
-            return routeDistances;
-        }
         //确定的步数将步数相等的过滤出来返回
         List<RouteDistance> result = new ArrayList<>(16);
-        if (stops > 0 && ConditionConstants.EXACTLYSTOPS.equals(conditionName)) {
-            routeDistances.forEach(routeDistance -> {
-                if (routeDistance.getSb().length() - 1 == stops) {
-                    result.add(routeDistance);
-                }
-            });
-        }
-        //确定的最大距离的将距离符合的过滤出来返回
-        if (maxDistance > 0 && ConditionConstants.MAXDISTANCE.equals(conditionName)) {
-            routeDistances.forEach(routeDistance -> {
-                if (routeDistance.getDistance() < maxDistance) {
-                    result.add(routeDistance);
-                }
-            });
-        }
+        routeDistances.forEach(routeDistance -> {
+            if (routeDistance.getSb().length() - 1 == stops) {
+                result.add(routeDistance);
+            }
+        });
         return result;
     }
 
+    /**
+     * 普通路径算法-最大距离
+     *
+     * @param edges 包含起点终点权重的路径 [source, target, weight]
+     * @param s     要搜索的路径的起点
+     * @param e     要搜索的路径的起点
+     * @return 起点s达到e的所有路径，考虑环以及起点终点是自身
+     */
+    public List<RouteDistance> maxDistanceRoute(String[][] edges,
+                                                String s,
+                                                String e,
+                                                int maxDistance) {
+        Map<String, List<TargetCity>> adjMap = new HashMap<>();
+        for (String[] edge : edges) {
+            adjMap.computeIfAbsent(edge[0], k -> new ArrayList<>()).add(new TargetCity(edge[1], edge[2]));
+        }
+
+        List<RouteDistance> routeDistances = new ArrayList<>(16);
+        List<RouteDistance> tempRouteDistances = new ArrayList<>();
+
+        //起点
+        RouteDistance start = new RouteDistance();
+        start.addStop(new TargetCity(s, 0));
+        tempRouteDistances.add(start);
+
+        SearchStopConditionFactory factory = new SearchStopConditionFactory();
+        //递归遍历
+        while (!tempRouteDistances.isEmpty()) {
+            RouteDistance curr = tempRouteDistances.remove(tempRouteDistances.size() - 1);
+            String lastStop = curr.getSb().substring(curr.getSb().length() - 1);
+            if (adjMap.containsKey(lastStop)) {
+                for (TargetCity edge : adjMap.get(lastStop)) {
+                    RouteDistance routeDistance = new RouteDistance();
+                    routeDistance.addStop(new TargetCity(curr.getSb().toString(), curr.getDistance()));
+
+                    TargetCity targetCity = new TargetCity(edge.getTo(), edge.getDistance());
+                    routeDistance.addStop(targetCity);
+                    SearchStopCondition condition = factory.getMaxDistanceCondition(routeDistance, maxDistance);
+
+                    if (e.equals(edge.getTo())) {
+                        routeDistances.add(routeDistance);
+                    }
+
+                    if (!condition.canStop()) {
+                        tempRouteDistances.add(routeDistance);
+                    }
+                }
+            }
+        }
+
+
+        //确定的最大距离的将距离符合的过滤出来返回
+        List<RouteDistance> result = new ArrayList<>(16);
+        routeDistances.forEach(routeDistance -> {
+            if (routeDistance.getDistance() < maxDistance) {
+                result.add(routeDistance);
+            }
+        });
+        return result;
+    }
 
     /**
      * 输入数据检查 抛参数非法异常
